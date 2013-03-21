@@ -28,6 +28,12 @@ Replicate requests on test server and dump request and errors to console (max 10
 
 ```
 
+prerequisites
+========
+* tcpflow
+* perl 
+* perl modules: JSON, Proc:Fork, LWP
+
 dump output explain (-dp)
 ========
 Dump of request is valid json string which can be pretty printed with -p flag. 
