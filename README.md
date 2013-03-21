@@ -11,7 +11,7 @@ httpflow [-hdpvr:]
   -d    : dump all request to stdout (JSON should be installed)
   -p    : pretty print
   -v    : print debug output
-  -r    : replicate on server host:port/percent%
+  -r    : replicate on server host:port{throughput} (throughput req/seq)
 ```
 
 examples
@@ -20,11 +20,11 @@ examples
 Dump all request on port 8080
   sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -dp
 
-Replicate 10% of requests on test server and write errors to file
-  sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -r host:port/10% > erros
+Replicate requests on test server and write errors to file (max 10 req/seq)
+  sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -r host:port{10} > erros
 
-Replicate 100% of requests on test server and dump request and errors to console
-  sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -dpr host:port/100%
+Replicate requests on test server and dump request and errors to console (max 100 req/seq)
+  sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -dpr host:port{100}
 
 ```
 
