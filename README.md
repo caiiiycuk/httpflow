@@ -18,13 +18,13 @@ examples
 ========
 ```
 Dump all request on port 8080
-  sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -dp
+  sudo tcpflow -p -c -i any tcp port 8080 | perl httpflow.pl -dp
 
 Replicate requests on test server and write errors to file (max 10 req/seq)
-  sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -r host:port{10} > erros
+  sudo tcpflow -p -c -i any tcp port 8080 | perl httpflow.pl -r host:port{10} > erros
 
 Replicate requests on test server and dump request and errors to console (max 100 req/seq)
-  sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -dpr host:port{100}
+  sudo tcpflow -p -c -i any tcp port 8080 | perl httpflow.pl -dpr host:port{100}
 
 ```
 
