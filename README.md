@@ -24,7 +24,7 @@ output explain (-dp)
 ========
 Dump of request is valid json string which can be pretty printed with -p flag. 
 If -p flag is omitted then each request is take one line in httpflow output, so
-it can be easily parse with other tools.
+it can be easily parsed with other tools.
 
 Example output:
 ```
@@ -47,10 +47,10 @@ Example output:
 }
 ```    
 
-* client  - ipaddress.port of client machine
-* server  - ipaddress.port of server machine
-* startAt - time when request starts
-* time    - elapsed time in seconds
-* path    - path of request
-* headers - hash of request headers
-* code    - response code
+* ```client```  - ipaddress.port of client machine
+* ```server```  - ipaddress.port of server machine
+* ```startAt``` - time when request starts
+* ```time```    - elapsed time in seconds
+* ```path```    - path of request
+* ```headers``` - hash of request headers
+* ```code```    - response code
