@@ -2,16 +2,20 @@ package Replicator;
 
 use Proc::Fork;
 
+my $verbose = 0;
+
 sub new {
   my $class = shift;
   my $line = shift;
   
-  if ($line =~ m|(.+):(.+)/(.+)%|) {
+  if ($line =~ m|(.+):(.+)\{(.+)\}|) {
     return bless {
       host => $1,
       port => $2,
-      percent => $3,
-      http => 'http://' . $1 . ':' . $2
+      http => 'http://' . $1 . ':' . $2,
+      throughput => $3,
+      req_count => 0,
+      req_sec => 0
     }, $class;
   }
 
@@ -21,6 +25,21 @@ sub new {
 sub replicate {
   my $self = shift;
   my $request = shift;
+
+  my $sec = time();
+  if ($sec ne $self->{rec_sec}) {
+    $self->{rec_sec} = $sec;
+    $self->{req_count} = 0;
+  }
+
+  $self->{req_count}++;
+
+  if ($self->{req_count} > $self->{throughput}) {
+    my $count = $self->{req_count};
+    my $max = $self->{throughput};
+    verbose("Skip request (too fast), $count req/sec > $max req/sec\n");
+    return;
+  }
 
   run_fork {
     child {
@@ -46,7 +65,7 @@ sub replicate {
       my $response = $lwp->request($httpRequest);
       my $time = time() - $startAt;
 
-      if ($request->{code} eq $response->code()) {
+      if ($request->{code} ne $response->code()) {
         my $expected = $request->{code};
         my $actual = $response->code();
         my $requestDump = JSON::to_json($_, {utf8 => 1, pretty => 1});
@@ -69,6 +88,16 @@ TIME
     }
   }
 
+}
+
+sub verbose($) {
+  if ($verbose) {
+    print STDOUT @_;
+  }
+}
+
+sub makeVerbose {
+  $verbose = 1;
 }
 
 1;
