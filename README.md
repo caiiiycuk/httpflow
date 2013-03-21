@@ -12,6 +12,7 @@ httpflow [-hdpv]
   -p    : pretty print
   -v    : print debug output
 ```
+
 examples
 ========
 ```
@@ -19,8 +20,13 @@ Dump all request on port 8080
   sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -dp
 ```
 
-output explain (:dump)
+output explain (-dp)
 ========
+Dump of request is valid json string which can be pretty printed with -p flag. 
+If -p flag is omitted then each request is take one line in httpflow output, so
+it can be easily parse with other tools.
+
+Example output:
 ```
 {
  "client" : "127.000.000.001.42108",
@@ -40,6 +46,7 @@ output explain (:dump)
  "code" : "200"
 }
 ```    
+
 * client  - ipaddress.port of client machine
 * server  - ipaddress.port of server machine
 * startAt - time when request starts
