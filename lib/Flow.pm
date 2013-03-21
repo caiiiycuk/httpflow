@@ -86,6 +86,10 @@ sub _BODY($) {
     return;
   }
 
+  unless ($line) {
+    return;
+  }
+
   if ($line =~ $HEADER) {
     $activeFlow->{headers}->{normalize($1)} = 
       normalize($2);
@@ -96,7 +100,7 @@ sub _BODY($) {
 
 sub verbose($) {
   if ($verbose) {
-    print STDERR @_;
+    print STDOUT @_;
   }
 }
 
