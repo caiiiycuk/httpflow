@@ -84,6 +84,11 @@ output explain (-dp)
 * path    - path of request
 * headers - hash of request headers
 * code    - response code
+
+support
+========
+https://github.com/caiiiycuk/httpflow
+
 EOF
 
   exit;
