@@ -1,17 +1,18 @@
 httpflow
 ========
 
-httpflow - extract http requests from tcpflow output and replicate it on another server.
+httpflow - extract http requests from tcpflow output.
 
 usage
 ========
 ```
-httpflow [-hdpvr:]
+httpflow [-hdpvsf:]
   -h    : help message
-  -d    : dump all request to stdout (JSON should be installed)
+  -d    : dump all requests to stdout
+  -f    : dump all requests to file
+  -s    : split dump file by hours
   -p    : pretty print
   -v    : print debug output
-  -r    : replicate on server host:port{throughput} (throughput req/seq)
 ```
 
 examples
@@ -19,24 +20,24 @@ examples
 ```
 Dump all requests on port 80
   sudo tcpflow -p -c -i any tcp port 80 | perl httpflow.pl -dp
+  or
+  sudo tcpdump -p -i any -w - 'tcp port 80' | tcpflow -r - -c | perl httpflow.pl -dp
 
-Dump all requests from tcpdump raw file
-  sudo tcpdump -C 1000 -p -i any -w tcpdump 'tcp port 80'
-  tcpflow -r tcpdump -c | perl httpflow.pl -dp
+Dump all requests into file
+  sudo tcpflow -p -c -i any tcp port 80 | perl httpflow.pl -f requests.dump
+  or
+  sudo tcpdump -p -i any -w - 'tcp port 80' | tcpflow -r - -c | perl httpflow.pl -f requests.dump
 
-Replicate requests on test server and write errors to file (max 10 req/seq)
-  sudo tcpflow -p -c -i any tcp port 8080 | perl httpflow.pl -r host:port{10} > erros
-
-Replicate requests on test server and dump request and errors to console (max 100 req/seq)
-  sudo tcpflow -p -c -i any tcp port 8080 | perl httpflow.pl -dpr host:port{100}
-
+Dump all reqests into file and split by hours
+  sudo tcpflow -p -c -i any tcp port 80 | perl httpflow.pl -sf requests.dump
+  or
+  sudo tcpdump -p -i any -w - 'tcp port 80' | tcpflow -r - -c | perl httpflow.pl -sf requests.dump
 ```
 
 prerequisites
 ========
 * tcpflow
-* perl 
-* perl modules: JSON, Proc:Fork, LWP
+* perl with JSON module (cpan -i JSON)
 
 dump output explain (-dp)
 ========
@@ -72,30 +73,3 @@ Example output:
 * ```path```    - path of request
 * ```headers``` - hash of request headers
 * ```code```    - response code
-
-replicate output errors explain (-r)
-========
-There are to types of replicate errors:
-* ```wrong response code``` - when response code not match
-* ```request processing is slow``` - when generation of request is slower than on original server
-
-Example of wrong response code:
-```
-==>error: wrong response code (expected: 200 != actual: 404), request:
-{
-   "client" : "127.000.000.001.43827",
-   "headers" : {
-      "TE" : "deflate,gzip;q=0.3",
-      "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "Accept-Encoding" : "gzip, deflate",
-      "Accept-Language" : "en-US,en;q=0.5",
-      "Cookie" : "blackbird={\"pos\": 1, \"size\": 0, \"load\": null}; blackbird={\"pos\": 1, \"size\": 0, \"load\": null}; _ym_visorc=w",
-      "Host" : "127.0.0.1:8080"
-   },
-   "time" : 0,
-   "startAt" : 1363855762,
-   "path" : "/maps/?tewerqwe=qweqw",
-   "server" : "127.000.000.001.08080",
-   "code" : "404"
-}
-```
