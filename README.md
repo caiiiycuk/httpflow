@@ -17,8 +17,12 @@ httpflow [-hdpvr:]
 examples
 ========
 ```
-Dump all request on port 8080
-  sudo tcpflow -p -c -i any tcp port 8080 | perl httpflow.pl -dp
+Dump all requests on port 80
+  sudo tcpflow -p -c -i any tcp port 80 | perl httpflow.pl -dp
+
+Dump all requests from tcpdump raw file
+  sudo tcpdump -C 1000 -p -i any -w tcpdump 'tcp port 80'
+  tcpflow -r tcpdump -c | perl httpflow.pl -dp
 
 Replicate requests on test server and write errors to file (max 10 req/seq)
   sudo tcpflow -p -c -i any tcp port 8080 | perl httpflow.pl -r host:port{10} > erros
