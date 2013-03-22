@@ -34,7 +34,7 @@ sub write {
   
   my $file = makeFileName();
   
-  if ($file != $handle->{file}) {
+  if ($file ne $handle->{file}) {
     reopenHandle($file);
   }
 
