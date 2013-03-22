@@ -39,6 +39,21 @@ prerequisites
 * tcpflow
 * perl with JSON module (cpan -i JSON)
 
+dump generation options
+========
+* -sf flags, with this option dump will be created for each hour. 
+
+```
+sudo tcpflow -p -c -i any tcp port 80 | perl httpflow.pl -sf requests.dump
+generates:
+  requests.dump_0h
+  requests.dump_1h
+  ...
+  requests.dump_24h
+```
+
+* -p flag, with this option request will be pretty printed, but this flag acts only with -d (stdout)
+
 dump output explain (-dp)
 ========
 Dump of request is valid json string which can be pretty printed with -p flag. 
