@@ -6,24 +6,23 @@ use Getopt::Std;
 use lib "$FindBin::Bin/lib";
 
 use Flow;
-use Replicator;
+use FileDump;
 use JSON;
 
+my $dumped = 0;
+
+$SIG{'INT'} = sub {
+  print "$dumped http requests dumped\n";
+  FileDump::close();
+  exit;
+};
+
 my %opt = ();
-getopts( 'hdpvr:', \%opt ) or usage();
+getopts( 'hdpvsf:', \%opt ) or usage();
 usage() if $opt{h};
 
 Flow::makeVerbose() if $opt{v};
-Replicator::makeVerbose() if $opt{v};
-
-my $replicator = undef;
-
-if ($opt{r}) {
-  $replicator = new Replicator($opt{r});
-  unless ($replicator) {
-    die "Unable to parse replicate server parameter should be host:port{throughput}\n";
-  }
-}
+FileDump::writeToFile($opt{f}, $opt{s}) if $opt{f};
 
 binmode STDOUT, ":encoding(UTF-8)";
 
@@ -38,9 +37,11 @@ while (<$fh>) {
       print JSON::to_json($_, {utf8 => 1, pretty => $opt{p}}), "\n";
     }
 
-    if ($opt{r}) {
-      $replicator->replicate($_);
+    if ($opt{f}) {
+      FileDump::write(JSON::to_json($_, {utf8 => 1, pretty => 0}));
     }
+
+    $dumped++;
   }
 }
 
@@ -48,35 +49,46 @@ close $fh;
 
 sub usage {
   print STDERR << "EOF";
-httpflow
+  httpflow
 ========
 
-httpflow - extract http requests from tcpflow output and replicate it on another server.
+httpflow - extract http requests from tcpflow output.
 
 usage
 ========
 ```
-httpflow [-hdpvr:]
+httpflow [-hdpvsf:]
   -h    : help message
-  -d    : dump all request to stdout (JSON should be installed)
+  -d    : dump all requests to stdout
+  -f    : dump all requests to file
+  -s    : split dump file by hours
   -p    : pretty print
   -v    : print debug output
-  -r    : replicate on server host:port{throughput} (throughput req/seq)
 ```
 
 examples
 ========
 ```
-Dump all request on port 8080
-  sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -dp
+Dump all requests on port 80
+  sudo tcpflow -p -c -i any tcp port 80 | perl httpflow.pl -dp
+  or
+  sudo tcpdump -p -i any -w - 'tcp port 80' | tcpflow -r - -c | perl httpflow.pl -dp
 
-Replicate requests on test server and write errors to file (max 10 req/seq)
-  sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -r host:port{10} > erros
+Dump all requests into file
+  sudo tcpflow -p -c -i any tcp port 80 | perl httpflow.pl -f requests.dump
+  or
+  sudo tcpdump -p -i any -w - 'tcp port 80' | tcpflow -r - -c | perl httpflow.pl -f requests.dump
 
-Replicate requests on test server and dump request and errors to console (max 100 req/seq)
-  sudo tcpflow -c -i any tcp port 8080 | perl httpflow.pl -dpr host:port{100}
-
+Dump all reqests into file and split by hours
+  sudo tcpflow -p -c -i any tcp port 80 | perl httpflow.pl -sf requests.dump
+  or
+  sudo tcpdump -p -i any -w - 'tcp port 80' | tcpflow -r - -c | perl httpflow.pl -sf requests.dump
 ```
+
+prerequisites
+========
+* tcpflow
+* perl with JSON module (cpan -i JSON)
 
 dump output explain (-dp)
 ========
@@ -112,33 +124,6 @@ Example output:
 * ```path```    - path of request
 * ```headers``` - hash of request headers
 * ```code```    - response code
-
-replicate output errors explain (-r)
-========
-There are to types of replicate errors:
-* ```wrong response code``` - when response code not match
-* ```request processing is slow``` - when generation of request is slower than on original server
-
-Example of wrong response code:
-```
-==>error: wrong response code (expected: 200 != actual: 404), request:
-{
-   "client" : "127.000.000.001.43827",
-   "headers" : {
-      "TE" : "deflate,gzip;q=0.3",
-      "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "Accept-Encoding" : "gzip, deflate",
-      "Accept-Language" : "en-US,en;q=0.5",
-      "Cookie" : "blackbird={\"pos\": 1, \"size\": 0, \"load\": null}; blackbird={\"pos\": 1, \"size\": 0, \"load\": null}; _ym_visorc=w",
-      "Host" : "127.0.0.1:8080"
-   },
-   "time" : 0,
-   "startAt" : 1363855762,
-   "path" : "/maps/?tewerqwe=qweqw",
-   "server" : "127.000.000.001.08080",
-   "code" : "404"
-}
-```
 
 support
 ========
